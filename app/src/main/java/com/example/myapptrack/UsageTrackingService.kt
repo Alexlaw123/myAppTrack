@@ -207,15 +207,16 @@ class UsageTrackingService : Service() {
 
             // ✅ 替换 MOVE_TO_FOREGROUND -> ACTIVITY_RESUMED
             if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                if (!activeApps.contains(pkgName)) {
-                    Log.d("AppUsageTracking", "$formattedTime -> $pkgName opened")
-                    appOpenTime[pkgName] = eventTime
-                    activeApps.add(pkgName)
-
-                    // 记录到 CSV
-                    //csvWriter?.appendLine("$formattedTime,$pkgName,opened,0")
+                // If the app is already marked as active, close the previous session first
+                if (activeApps.contains(pkgName)) {
+                    markAppClosed(pkgName)
+                    activeApps.remove(pkgName)
                 }
+                Log.d("AppUsageTracking", "$formattedTime -> $pkgName opened")
+                appOpenTime[pkgName] = eventTime
+                activeApps.add(pkgName)
             }
+
 
             // ✅ 替换 MOVE_TO_BACKGROUND -> ACTIVITY_PAUSED
             if (event.eventType == UsageEvents.Event.ACTIVITY_PAUSED) {
